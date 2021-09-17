@@ -74,3 +74,5 @@ xml
         indicator.setNavigator(mCommonNavigator)
         ViewPagerHelper.bind(indicator, viewPager)
 '''
+![image](https://user-images.githubusercontent.com/20277310/133807887-f1a41a4d-8e70-4df2-b975-49b0c0743161.png)
+
