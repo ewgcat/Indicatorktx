@@ -1,0 +1,28 @@
+buildscript {
+    ext.kotlin_version = "1.5.21"
+    repositories {
+        google()
+        maven { url "https://www.jitpack.io" }
+        //阿里更新远程仓库
+        maven { url 'https://maven.aliyun.com/repository/public/' }
+        maven { url 'https://maven.aliyun.com/repository/spring/'}
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:4.2.2"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.30"
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        maven { url "https://www.jitpack.io" }
+        maven { url 'https://maven.aliyun.com/repository/public/' }
+        mavenCentral()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
