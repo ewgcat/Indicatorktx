@@ -30,11 +30,5 @@ interface IPagerTitleView {
      */
     fun onEnter(index: Int, totalCount: Int, enterPercent: Float, leftToRight: Boolean)
 
-    fun  getContentLeft():Int
 
-    fun getContentTop():Int
-
-    fun getContentRight():Int
-
-    fun getContentBottom():Int
 }

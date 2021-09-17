@@ -11,9 +11,9 @@ import com.lishuaihua.indicator.common.indicators.IPagerIndicator
 abstract class CommonNavigatorAdapter {
     private val mDataSetObservable = DataSetObservable()
     abstract val count: Int
-    abstract fun getTitleView(context: Context?, index: Int): IPagerTitleView?
-    abstract fun getIndicator(context: Context?): IPagerIndicator?
-    fun getTitleWeight(context: Context?, index: Int): Float {
+    abstract fun getTitleView(context: Context, index: Int): IPagerTitleView
+    abstract fun getIndicator(context: Context): IPagerIndicator?
+    fun getTitleWeight(context: Context, index: Int): Float {
         return 1.0f
     }
 

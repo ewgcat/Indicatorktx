@@ -1,0 +1,2 @@
+com/lishuaihua/indicator/BuildConfig.java
+ com.lishuaihua.indicator.BuildConfig

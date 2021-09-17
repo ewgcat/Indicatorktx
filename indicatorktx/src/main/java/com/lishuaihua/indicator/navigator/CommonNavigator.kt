@@ -13,52 +13,44 @@ import com.lishuaihua.indicator.*
 import com.lishuaihua.indicator.common.CommonNavigatorAdapter
 import com.lishuaihua.indicator.common.indicators.IPagerIndicator
 import com.lishuaihua.indicator.common.IPagerTitleView
+import com.lishuaihua.indicator.scrollstate.ScrollState
+import java.util.ArrayList
 
 /**
  * 通用的ViewPager指示器，包含PagerTitle和PagerIndicator
  */
-class CommonNavigator(context: Context?) : FrameLayout(context!!), IPagerNavigator,
-    OnNavigatorScrollListener {
-
+class CommonNavigator(context: Context) : FrameLayout(context),
+    IPagerNavigator, OnNavigatorScrollListener {
     private var mScrollView: HorizontalScrollView? = null
-    var titleContainer: LinearLayout? = null
-        private set
+    private var mTitleContainer: LinearLayout? = null
     private var mIndicatorContainer: LinearLayout? = null
-    var pagerIndicator: IPagerIndicator? = null
-        private set
-    var adapter: CommonNavigatorAdapter? = null
-        private set
-     var mNavigatorHelper: NavigatorHelper
-        private set
-    init {
-        mNavigatorHelper = NavigatorHelper()
-        mNavigatorHelper.setNavigatorScrollListener(this)
-    }
+    private var mIndicator: IPagerIndicator? = null
+    private var mAdapter: CommonNavigatorAdapter? = null
+    private var mNavigatorHelper: NavigatorHelper?=null
     /**
      * 提供给外部的参数配置
      */
     /** */
-    var isAdjustMode= false // 自适应模式，适用于数目固定的、少量的title
-        private set
-    var isEnablePivotScroll= false // 启动中心点滚动
-        private set
-
-    var scrollPivotX = 0.5f // 滚动中心点 0.0f - 1.0f
-    var isSmoothScroll = true // 是否平滑滚动，适用于 !mAdjustMode && !mFollowTouch
-    var isFollowTouch = true // 是否手指跟随滚动
-    var rightPadding = 0
-    var leftPadding = 0
-    var isIndicatorOnTop // 指示器是否在title上层，默认为下层
+    private var mAdjustMode // 自适应模式，适用于数目固定的、少量的title
+            = false
+    private var mEnablePivotScroll // 启动中心点滚动
+            = false
+    private var mScrollPivotX = 0.5f // 滚动中心点 0.0f - 1.0f
+    private var mSmoothScroll = true // 是否平滑滚动，适用于 !mAdjustMode && !mFollowTouch
+    private var mFollowTouch = true // 是否手指跟随滚动
+    private var mRightPadding = 0
+    private var mLeftPadding = 0
+    private var mIndicatorOnTop // 指示器是否在title上层，默认为下层
             = false
     private var mSkimOver // 跨多页切换时，中间页是否显示 "掠过" 效果
             = false
-    var isReselectWhenLayout = true // PositionData准备好时，是否重新选中当前页，为true可保证在极端情况下指示器状态正确
+    private var mReselectWhenLayout = true // PositionData准备好时，是否重新选中当前页，为true可保证在极端情况下指示器状态正确
 
     /** */ // 保存每个title的位置信息，为扩展indicator提供保障
-    private val mPositionDataList: ArrayList<PositionData> = ArrayList()
+    private val mPositionDataList: MutableList<PositionData> = ArrayList()
     private val mObserver: DataSetObserver = object : DataSetObserver() {
         override fun onChanged() {
-            mNavigatorHelper.totalCount = adapter!!.count // 如果使用helper，应始终保证helper中的totalCount为最新
+            mNavigatorHelper!!.totalCount=mAdapter!!.count// 如果使用helper，应始终保证helper中的totalCount为最新
             init()
         }
 
@@ -68,27 +60,39 @@ class CommonNavigator(context: Context?) : FrameLayout(context!!), IPagerNavigat
     }
 
     override fun notifyDataSetChanged() {
-        if (adapter != null) {
-            adapter!!.notifyDataSetChanged()
+        if (mAdapter != null) {
+            mAdapter!!.notifyDataSetChanged()
         }
     }
 
+    fun isAdjustMode(): Boolean {
+        return mAdjustMode
+    }
+
+    fun setAdjustMode(`is`: Boolean) {
+        mAdjustMode = `is`
+    }
+
+    fun getAdapter(): CommonNavigatorAdapter? {
+        return mAdapter
+    }
+
     fun setAdapter(adapter: CommonNavigatorAdapter) {
-        if (this.adapter === adapter) {
+        if (mAdapter === adapter) {
             return
         }
-        if (this.adapter != null) {
-            adapter.unregisterDataSetObserver(mObserver)
+        if (mAdapter != null) {
+            mAdapter!!.unregisterDataSetObserver(mObserver)
         }
-        this.adapter = adapter
-        if (this.adapter != null) {
-            adapter.registerDataSetObserver(mObserver)
-            mNavigatorHelper.totalCount = adapter.count
-            if (titleContainer != null) {  // adapter改变时，应该重新init，但是第一次设置adapter不用，onAttachToIndicator中有init
-                adapter.notifyDataSetChanged()
+        mAdapter = adapter
+        if (mAdapter != null) {
+            mAdapter!!.registerDataSetObserver(mObserver)
+            mNavigatorHelper!!.totalCount=mAdapter!!.count
+            if (mTitleContainer != null) {  // adapter改变时，应该重新init，但是第一次设置adapter不用，onAttachToMagicIndicator中有init
+                mAdapter!!.notifyDataSetChanged()
             }
         } else {
-            mNavigatorHelper.totalCount = 0
+            mNavigatorHelper!!.totalCount=0
             init()
         }
     }
@@ -96,18 +100,17 @@ class CommonNavigator(context: Context?) : FrameLayout(context!!), IPagerNavigat
     private fun init() {
         removeAllViews()
         val root: View
-        if (isAdjustMode) {
-            root = LayoutInflater.from(context)
-                .inflate(R.layout.pager_navigator_layout_no_scroll, this)
+        root = if (mAdjustMode) {
+            LayoutInflater.from(context).inflate(R.layout.pager_navigator_layout_no_scroll, this)
         } else {
-            root = LayoutInflater.from(context).inflate(R.layout.pager_navigator_layout, this)
+            LayoutInflater.from(context).inflate(R.layout.pager_navigator_layout, this)
         }
         mScrollView =
             root.findViewById<View>(R.id.scroll_view) as HorizontalScrollView // mAdjustMode为true时，mScrollView为null
-        titleContainer = root.findViewById<View>(R.id.title_container) as LinearLayout
-        titleContainer!!.setPadding(leftPadding, 0, rightPadding, 0)
+        mTitleContainer = root.findViewById<View>(R.id.title_container) as LinearLayout
+        mTitleContainer!!.setPadding(mLeftPadding, 0, mRightPadding, 0)
         mIndicatorContainer = root.findViewById<View>(R.id.indicator_container) as LinearLayout
-        if (isIndicatorOnTop) {
+        if (mIndicatorOnTop) {
             mIndicatorContainer!!.parent.bringChildToFront(mIndicatorContainer)
         }
         initTitlesAndIndicator()
@@ -118,47 +121,43 @@ class CommonNavigator(context: Context?) : FrameLayout(context!!), IPagerNavigat
      */
     private fun initTitlesAndIndicator() {
         var i = 0
-        val j = mNavigatorHelper.totalCount
+        val j: Int = mNavigatorHelper!!.totalCount
         while (i < j) {
-            val v = adapter!!.getTitleView(context, i)
+            val v = mAdapter!!.getTitleView(context, i)
             if (v is View) {
                 val view = v as View
                 var lp: LinearLayout.LayoutParams
-                if (isAdjustMode) {
+                if (mAdjustMode) {
                     lp = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT)
-                    lp.weight = adapter!!.getTitleWeight(context, i)
+                    lp.weight = mAdapter!!.getTitleWeight(context, i)
                 } else {
-                    lp = LinearLayout.LayoutParams(
-                        LayoutParams.WRAP_CONTENT,
-                        LayoutParams.MATCH_PARENT
-                    )
+                    lp = LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+                        LayoutParams.MATCH_PARENT)
                 }
-                titleContainer!!.addView(view, lp)
+                mTitleContainer!!.addView(view, lp)
             }
             i++
         }
-        if (adapter != null) {
-            pagerIndicator = adapter!!.getIndicator(context)
-            if (pagerIndicator is View) {
-                val lp = LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
-                mIndicatorContainer!!.addView(pagerIndicator as View?, lp)
+        if (mAdapter != null) {
+            mIndicator = mAdapter!!.getIndicator(context)
+            if (mIndicator is View) {
+                val lp = LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT)
+                mIndicatorContainer!!.addView(mIndicator as View?, lp)
             }
         }
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        if (adapter != null) {
+        if (mAdapter != null) {
             preparePositionData()
-            if (pagerIndicator != null) {
-                pagerIndicator!!.onPositionDataProvide(mPositionDataList)
+            if (mIndicator != null) {
+                mIndicator!!.onPositionDataProvide(mPositionDataList)
             }
-            if (isReselectWhenLayout && mNavigatorHelper.scrollState == ScrollState.SCROLL_STATE_IDLE) {
-                onPageSelected(mNavigatorHelper.currentIndex)
-                onPageScrolled(mNavigatorHelper.currentIndex, 0.0f, 0)
+            if (mReselectWhenLayout && mNavigatorHelper!!.scrollState === ScrollState.SCROLL_STATE_IDLE) {
+                onPageSelected(mNavigatorHelper!!.currentIndex)
+                onPageScrolled(mNavigatorHelper!!.scrollState, 0.0f, 0)
             }
         }
     }
@@ -169,10 +168,10 @@ class CommonNavigator(context: Context?) : FrameLayout(context!!), IPagerNavigat
     private fun preparePositionData() {
         mPositionDataList.clear()
         var i = 0
-        val j = mNavigatorHelper.totalCount
+        val j: Int = mNavigatorHelper!!.totalCount
         while (i < j) {
             val data = PositionData()
-            val v = titleContainer!!.getChildAt(i)
+            val v = mTitleContainer!!.getChildAt(i)
             if (v != null) {
                 data.mLeft = v.left
                 data.mTop = v.top
@@ -197,98 +196,132 @@ class CommonNavigator(context: Context?) : FrameLayout(context!!), IPagerNavigat
     }
 
     override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
-        if (adapter != null) {
-            mNavigatorHelper.onPageScrolled(position, positionOffset, positionOffsetPixels)
-            if (pagerIndicator != null) {
-                pagerIndicator!!.onPageScrolled(position, positionOffset, positionOffsetPixels)
+        if (mAdapter != null) {
+            mNavigatorHelper!!.onPageScrolled(position, positionOffset, positionOffsetPixels)
+            if (mIndicator != null) {
+                mIndicator!!.onPageScrolled(position, positionOffset, positionOffsetPixels)
             }
 
             // 手指跟随滚动
             if (mScrollView != null && mPositionDataList.size > 0 && position >= 0 && position < mPositionDataList.size) {
-                if (isFollowTouch) {
+                if (mFollowTouch) {
                     val currentPosition = Math.min(mPositionDataList.size - 1, position)
                     val nextPosition = Math.min(mPositionDataList.size - 1, position + 1)
                     val current = mPositionDataList[currentPosition]
                     val next = mPositionDataList[nextPosition]
-                    val scrollTo = current.horizontalCenter() - mScrollView!!.width * scrollPivotX
-                    val nextScrollTo = next.horizontalCenter() - mScrollView!!.width * scrollPivotX
-                    mScrollView!!.scrollTo(
-                        (scrollTo + (nextScrollTo - scrollTo) * positionOffset).toInt(),
-                        0
-                    )
-                } else if (!isEnablePivotScroll) {
+                    val scrollTo = current.horizontalCenter() - mScrollView!!.width * mScrollPivotX
+                    val nextScrollTo = next.horizontalCenter() - mScrollView!!.width * mScrollPivotX
+                    mScrollView!!.scrollTo((scrollTo + (nextScrollTo - scrollTo) * positionOffset).toInt(),
+                        0)
+                } else if (!mEnablePivotScroll) {
                     // TODO 实现待选中项完全显示出来
                 }
             }
         }
     }
 
+    fun getScrollPivotX(): Float {
+        return mScrollPivotX
+    }
+
+    fun setScrollPivotX(scrollPivotX: Float) {
+        mScrollPivotX = scrollPivotX
+    }
+
     override fun onPageSelected(position: Int) {
-        if (adapter != null) {
-            mNavigatorHelper.onPageSelected(position)
-            if (pagerIndicator != null) {
-                pagerIndicator!!.onPageSelected(position)
+        if (mAdapter != null) {
+            mNavigatorHelper!!.onPageSelected(position)
+            if (mIndicator != null) {
+                mIndicator!!.onPageSelected(position)
             }
         }
     }
 
     override fun onPageScrollStateChanged(state: Int) {
-        if (adapter != null) {
-            mNavigatorHelper.onPageScrollStateChanged(state)
-            if (pagerIndicator != null) {
-                pagerIndicator!!.onPageScrollStateChanged(state)
+        if (mAdapter != null) {
+            mNavigatorHelper!!.onPageScrollStateChanged(state)
+            if (mIndicator != null) {
+                mIndicator!!.onPageScrollStateChanged(state)
             }
         }
     }
 
     override fun onAttachToIndicator() {
-        init() // 将初始化延迟到这里
+        init()
+
     }
 
-    override fun onDetachFromIndicator() {}
+    override fun onDetachFromIndicator() {
+    }
+
+
+    fun isEnablePivotScroll(): Boolean {
+        return mEnablePivotScroll
+    }
+
+    fun setEnablePivotScroll(`is`: Boolean) {
+        mEnablePivotScroll = `is`
+    }
+
     override fun onEnter(index: Int, totalCount: Int, enterPercent: Float, leftToRight: Boolean) {
-        if (titleContainer == null) {
+        if (mTitleContainer == null) {
             return
         }
-        val v = titleContainer!!.getChildAt(index)
+        val v = mTitleContainer!!.getChildAt(index)
         if (v is IPagerTitleView) {
             (v as IPagerTitleView).onEnter(index, totalCount, enterPercent, leftToRight)
         }
     }
 
-
-
     override fun onLeave(index: Int, totalCount: Int, leavePercent: Float, leftToRight: Boolean) {
-        if (titleContainer == null) {
+        if (mTitleContainer == null) {
             return
         }
-        val v = titleContainer!!.getChildAt(index)
+        val v = mTitleContainer!!.getChildAt(index)
         if (v is IPagerTitleView) {
             (v as IPagerTitleView).onLeave(index, totalCount, leavePercent, leftToRight)
         }
     }
 
-    var isSkimOver: Boolean
-        get() = mSkimOver
-        set(skimOver) {
-            mSkimOver = skimOver
-            mNavigatorHelper.setSkimOver(skimOver)
-        }
+    fun isSmoothScroll(): Boolean {
+        return mSmoothScroll
+    }
+
+    fun setSmoothScroll(smoothScroll: Boolean) {
+        mSmoothScroll = smoothScroll
+    }
+
+    fun isFollowTouch(): Boolean {
+        return mFollowTouch
+    }
+
+    fun setFollowTouch(followTouch: Boolean) {
+        mFollowTouch = followTouch
+    }
+
+    fun isSkimOver(): Boolean {
+        return mSkimOver
+    }
+
+    fun setSkimOver(skimOver: Boolean) {
+        mSkimOver = skimOver
+        mNavigatorHelper!!.setSkimOver(skimOver)
+    }
 
     override fun onSelected(index: Int, totalCount: Int) {
-        if (titleContainer == null) {
+        if (mTitleContainer == null) {
             return
         }
-        val v = titleContainer!!.getChildAt(index)
+        val v = mTitleContainer!!.getChildAt(index)
         if (v is IPagerTitleView) {
             (v as IPagerTitleView).onSelected(index, totalCount)
         }
-        if (!isAdjustMode && !isFollowTouch && mScrollView != null && mPositionDataList.size > 0) {
+        if (!mAdjustMode && !mFollowTouch && mScrollView != null && mPositionDataList.size > 0) {
             val currentIndex = Math.min(mPositionDataList.size - 1, index)
             val current = mPositionDataList[currentIndex]
-            if (isEnablePivotScroll) {
-                val scrollTo = current.horizontalCenter() - mScrollView!!.width * scrollPivotX
-                if (isSmoothScroll) {
+            if (mEnablePivotScroll) {
+                val scrollTo = current.horizontalCenter() - mScrollView!!.width * mScrollPivotX
+                if (mSmoothScroll) {
                     mScrollView!!.smoothScrollTo(scrollTo.toInt(), 0)
                 } else {
                     mScrollView!!.scrollTo(scrollTo.toInt(), 0)
@@ -296,13 +329,13 @@ class CommonNavigator(context: Context?) : FrameLayout(context!!), IPagerNavigat
             } else {
                 // 如果当前项被部分遮挡，则滚动显示完全
                 if (mScrollView!!.scrollX > current.mLeft) {
-                    if (isSmoothScroll) {
+                    if (mSmoothScroll) {
                         mScrollView!!.smoothScrollTo(current.mLeft, 0)
                     } else {
                         mScrollView!!.scrollTo(current.mLeft, 0)
                     }
                 } else if (mScrollView!!.scrollX + width < current.mRight) {
-                    if (isSmoothScroll) {
+                    if (mSmoothScroll) {
                         mScrollView!!.smoothScrollTo(current.mRight - width, 0)
                     } else {
                         mScrollView!!.scrollTo(current.mRight - width, 0)
@@ -313,20 +346,64 @@ class CommonNavigator(context: Context?) : FrameLayout(context!!), IPagerNavigat
     }
 
     override fun onDeselected(index: Int, totalCount: Int) {
-        if (titleContainer == null) {
+        if (mTitleContainer == null) {
             return
         }
-        val v = titleContainer!!.getChildAt(index)
+        val v = mTitleContainer!!.getChildAt(index)
         if (v is IPagerTitleView) {
             (v as IPagerTitleView).onDeselected(index, totalCount)
         }
     }
 
     fun getPagerTitleView(index: Int): IPagerTitleView? {
-        return if (titleContainer == null) {
+        return if (mTitleContainer == null) {
             null
-        } else titleContainer!!.getChildAt(index) as IPagerTitleView
+        } else mTitleContainer!!.getChildAt(index) as IPagerTitleView
+    }
+
+    fun getTitleContainer(): LinearLayout? {
+        return mTitleContainer
+    }
+
+    fun getRightPadding(): Int {
+        return mRightPadding
+    }
+
+    fun setRightPadding(rightPadding: Int) {
+        mRightPadding = rightPadding
+    }
+
+    fun getLeftPadding(): Int {
+        return mLeftPadding
+    }
+
+    fun setLeftPadding(leftPadding: Int) {
+        mLeftPadding = leftPadding
+    }
+
+    fun isIndicatorOnTop(): Boolean {
+        return mIndicatorOnTop
+    }
+
+    fun setIndicatorOnTop(indicatorOnTop: Boolean) {
+        mIndicatorOnTop = indicatorOnTop
+    }
+
+    fun isReselectWhenLayout(): Boolean {
+        return mReselectWhenLayout
+    }
+
+    fun setReselectWhenLayout(reselectWhenLayout: Boolean) {
+        mReselectWhenLayout = reselectWhenLayout
+    }
+
+    init {
+        mNavigatorHelper = NavigatorHelper()
+        mNavigatorHelper!!.setNavigatorScrollListener(this)
     }
 
 
+    fun getPagerIndicator(): IPagerIndicator? {
+        return mIndicator
+    }
 }

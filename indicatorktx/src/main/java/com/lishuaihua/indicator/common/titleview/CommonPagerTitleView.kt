@@ -5,12 +5,13 @@ import android.widget.FrameLayout
 import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.view.View
+import com.lishuaihua.indicator.IMeasurablePagerTitleView
 import com.lishuaihua.indicator.common.IPagerTitleView
 
 /**
  * 通用的指示器标题，子元素内容由外部提供，事件回传给外部
  */
-class CommonPagerTitleView(context: Context) : FrameLayout(context), IPagerTitleView {
+class CommonPagerTitleView(context: Context) : FrameLayout(context), IMeasurablePagerTitleView {
     var onPagerTitleChangeListener: OnPagerTitleChangeListener? = null
     var contentPositionDataProvider: ContentPositionDataProvider? = null
     override fun onSelected(index: Int, totalCount: Int) {

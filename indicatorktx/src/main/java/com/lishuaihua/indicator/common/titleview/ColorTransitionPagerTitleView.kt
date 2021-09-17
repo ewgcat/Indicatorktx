@@ -6,7 +6,7 @@ import com.lishuaihua.indicator.common.ArgbEvaluatorHolder
 /**
  * 两种颜色过渡的指示器标题
  */
-class ColorTransitionPagerTitleView(context: Context?) : SimplePagerTitleView(context) {
+class ColorTransitionPagerTitleView(context: Context) : SimplePagerTitleView(context) {
     override fun onLeave(index: Int, totalCount: Int, leavePercent: Float, leftToRight: Boolean) {
         val color = ArgbEvaluatorHolder.eval(leavePercent, selectedColor, normalColor)
         setTextColor(color)

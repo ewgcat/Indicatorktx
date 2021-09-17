@@ -60,8 +60,8 @@ class LinePagerIndicator(context: Context) : View(context), IPagerIndicator {
         }
 
         // 计算锚点位置
-        val current = FragmentContainerHelper.getImitativePositionData(mPositionDataList, position)
-        val next = FragmentContainerHelper.getImitativePositionData(mPositionDataList, position + 1)
+        val current = FragmentContainerHelper.getImitativePositionData(mPositionDataList!!, position)
+        val next = FragmentContainerHelper.getImitativePositionData(mPositionDataList!!, position + 1)
         val leftX: Float
         val nextLeftX: Float
         val rightX: Float

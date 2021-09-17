@@ -3,12 +3,13 @@ package com.lishuaihua.indicator.badge
 import android.content.Context
 import android.view.View
 import android.widget.FrameLayout
+import com.lishuaihua.indicator.IMeasurablePagerTitleView
 import com.lishuaihua.indicator.common.IPagerTitleView
 
 /**
  * 支持显示角标的title，角标布局可自定义
  */
-class BadgePagerTitleView(context: Context?) : FrameLayout(context!!), IPagerTitleView {
+class BadgePagerTitleView(context: Context?) : FrameLayout(context!!), IMeasurablePagerTitleView {
     var innerPagerTitleView: IPagerTitleView? = null
         private set
     private var mBadgeView: View? = null
@@ -85,8 +86,8 @@ class BadgePagerTitleView(context: Context?) : FrameLayout(context!!), IPagerTit
             position[1] = v.top
             position[2] = v.right
             position[3] = v.bottom
-            if (innerPagerTitleView is IPagerTitleView) {
-                val view = innerPagerTitleView as IPagerTitleView
+            if (innerPagerTitleView is IMeasurablePagerTitleView) {
+                val view = innerPagerTitleView as IMeasurablePagerTitleView
                 position[4] = view.getContentLeft()
                 position[5] = view.getContentTop()
                 position[6] = view.getContentRight()
@@ -120,26 +121,26 @@ class BadgePagerTitleView(context: Context?) : FrameLayout(context!!), IPagerTit
     }
 
     override fun getContentLeft(): Int {
-        return if (innerPagerTitleView is IPagerTitleView) {
-            left + (innerPagerTitleView as IPagerTitleView).getContentLeft()
+        return if (innerPagerTitleView is IMeasurablePagerTitleView) {
+            left + (innerPagerTitleView as IMeasurablePagerTitleView).getContentLeft()
         } else left
     }
 
     override fun getContentTop(): Int {
-        return if (innerPagerTitleView is IPagerTitleView) {
-            (innerPagerTitleView as IPagerTitleView).getContentTop()
+        return if (innerPagerTitleView is IMeasurablePagerTitleView) {
+            (innerPagerTitleView as IMeasurablePagerTitleView).getContentTop()
         } else top
     }
 
     override fun getContentRight(): Int {
-        return if (innerPagerTitleView is IPagerTitleView) {
-            left + (innerPagerTitleView as IPagerTitleView).getContentRight()
+        return if (innerPagerTitleView is IMeasurablePagerTitleView) {
+            left + (innerPagerTitleView as IMeasurablePagerTitleView).getContentRight()
         } else right
     }
 
     override fun getContentBottom(): Int {
-        return if (innerPagerTitleView is IPagerTitleView) {
-            (innerPagerTitleView as IPagerTitleView).getContentBottom()
+        return if (innerPagerTitleView is IMeasurablePagerTitleView) {
+            (innerPagerTitleView as IMeasurablePagerTitleView).getContentBottom()
         } else bottom
     }
 

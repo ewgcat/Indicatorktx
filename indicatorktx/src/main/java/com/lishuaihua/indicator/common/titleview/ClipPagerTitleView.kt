@@ -5,12 +5,14 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.view.View
+import com.lishuaihua.indicator.IMeasurablePagerTitleView
 import com.lishuaihua.indicator.UIUtil
+import com.lishuaihua.indicator.common.IPagerTitleView
 
 /**
  * 类似今日头条切换效果的指示器标题
  */
-class ClipPagerTitleView(context: Context) : View(context), IPagerTitleView {
+class ClipPagerTitleView(context: Context) : View(context), IMeasurablePagerTitleView {
     private var mText: String? = null
     private var mTextColor = 0
     private var mClipColor = 0

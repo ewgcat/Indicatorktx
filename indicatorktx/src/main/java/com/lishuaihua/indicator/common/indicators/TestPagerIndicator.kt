@@ -39,8 +39,8 @@ class TestPagerIndicator( context: Context) : View(context), IPagerIndicator {
         }
 
         // 计算锚点位置
-        val current = FragmentContainerHelper.getImitativePositionData(mPositionDataList, position)
-        val next = FragmentContainerHelper.getImitativePositionData(mPositionDataList, position + 1)
+        val current = FragmentContainerHelper.getImitativePositionData(mPositionDataList!!, position)
+        val next = FragmentContainerHelper.getImitativePositionData(mPositionDataList!!, position + 1)
         mOutRect.left = current.mLeft + (next.mLeft - current.mLeft) * positionOffset
         mOutRect.top = current.mTop + (next.mTop - current.mTop) * positionOffset
         mOutRect.right = current.mRight + (next.mRight - current.mRight) * positionOffset

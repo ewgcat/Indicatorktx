@@ -2,6 +2,7 @@ package com.lishuaihua.indicator
 
 import android.util.SparseBooleanArray
 import android.util.SparseArray
+import com.lishuaihua.indicator.scrollstate.ScrollState
 
 /**
  * 方便扩展IPagerNavigator的帮助类，将ViewPager的3个回调方法转换成

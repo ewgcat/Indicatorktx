@@ -5,13 +5,14 @@ import android.graphics.Rect
 import android.widget.TextView
 import android.view.Gravity
 import android.text.TextUtils
+import com.lishuaihua.indicator.IMeasurablePagerTitleView
 import com.lishuaihua.indicator.UIUtil
 
 /**
  * 带文本的指示器标题
  */
-open class SimplePagerTitleView(context: Context) : TextView(context, null),
-    IPagerTitleView {
+open class SimplePagerTitleView(context: Context) : androidx.appcompat.widget.AppCompatTextView(context, null),
+    IMeasurablePagerTitleView {
     var selectedColor = 0
     var normalColor = 0
     private fun init(context: Context) {

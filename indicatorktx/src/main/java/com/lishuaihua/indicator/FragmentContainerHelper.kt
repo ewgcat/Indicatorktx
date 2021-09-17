@@ -9,6 +9,7 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.view.animation.Interpolator
 import com.lishuaihua.indicator.navigator.Indicator
+import com.lishuaihua.indicator.scrollstate.ScrollState
 import kotlin.jvm.JvmOverloads
 import java.util.ArrayList
 

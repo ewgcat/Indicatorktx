@@ -46,11 +46,10 @@ class MainActivity : AppCompatActivity() {
         mDataList.add("标题8")
         mDataList.add("标题9")
       var  mCommonNavigator = CommonNavigator(this)
-        mCommonNavigator.isSkimOver = true
-        mCommonNavigator.adapter = object : CommonNavigatorAdapter() {
-            override fun getCount(): Int {
-                return mDataList.size
-            }
+        mCommonNavigator.setSkimOver(true)
+        mCommonNavigator.setAdapter(object : CommonNavigatorAdapter() {
+
+            override val count: Int = mDataList.size
 
             override fun getTitleView(context: Context, index: Int): IPagerTitleView {
                 val clipPagerTitleView = ClipPagerTitleView(context)
@@ -61,11 +60,11 @@ class MainActivity : AppCompatActivity() {
                 return clipPagerTitleView
             }
 
-            override fun getIndicator(context: Context): IPagerIndicator? {
+            override fun getIndicator(context: Context): IPagerIndicator?{
                 return null
             }
-        }
-        indicator.navigator = mCommonNavigator
+        })
+        indicator.setNavigator(mCommonNavigator)
         ViewPagerHelper.bind(indicator, viewPager)
 
     }
